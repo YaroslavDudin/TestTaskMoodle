@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        div {
+            display: grid;
+            grid-template-columns: auto;
+        }
+        img{
+            height: 100px;
+            width: 100px;
+        }
+        hr{
+            margin: 5px;
+        }
+
+    </style>
+</head>
+<body>
+    {%if is_admin or is_manager%}
+    <form action="{%url 'order_list'%}" method="get">
+        <button>Посмотреть заказы</button>
+    </form>
+    {%endif%}
+
+    {%if is_manager or is_admin%}
+    <form  method="get">
+        <div>
+            {{form.query.label}}
+        </div>
+        {{form.query}}
+        <div>
+            {{form.sort.label}}
+        </div>
+        {{form.sort}}
+        <button type="submit">Применить</button>
+    </form>
+    {%endif%}
+    <form action="{% url 'logout' %}" method="post">
+        {% csrf_token %}
+        <button type="submit"> Выйти из учётки</button>
+    </form>
+    {% if user.is_authenticated %}
+    {% for group in user.groups.all %}
+    <p>Вы водшли как : {{user.username}} , ваша роль {{group.name}}</p>
+    {%endfor%}
+    {%endif%}
+
+    
+    {%for product in products%}
+    <div>
+        <span>{{product.name}}</span>
+        <span>{{product.article}}</span>
+        <span>{{product.supplier}}</span>
+        <span>{{product.manufacturer}}</span>
+        <span>{{product.category}}</span>
+        <span>{{product.price}}</span>
+        <span>{{product.discount}}</span>
+        <span>{{product.final_price}}</span>
+        <span>{{product.description}}</span>
+        <img src="{{product.image.url}}" alt="{{product.name}}">
+        <hr>
+    </div>
+    {%endfor%}
+</body>
+</html>

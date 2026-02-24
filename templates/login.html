@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        p {
+            color: red;
+        }
+    </style>
+</head>
+<body>
+    <form  method="post">
+        {% csrf_token %}
+        <label for="login">Введите логин</label>
+        <input type="text" name="username">
+        <label for="password">Введите пароль</label>
+        <input type="password" name="password">
+        <button type="submit">Войти</button>
+        {% if error_message %}
+        <p>{{error_message}}</p>
+        {% endif %}
+    </form>
+    <form action="{% url 'product_list' %}" method="get">
+    <button type="submit">Войти как гость</button>
+    </form>
+</body>
+</html>

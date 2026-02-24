@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    {%if is_admin or is_manager%}
+    <form action="{%url 'product_list'%}" method="get">
+        <button type="submit">Вернуться</button>
+    </form>
+    
+    {%for order in orders %}
+    <table>
+        <tr><td><strong>Номер</strong></td><td>{{order.count}}</td></tr>
+        <tr><td><strong>Артикул</strong></td><td>{{order.article.article}}</td></tr>
+        <tr><td><strong>Дата создания</strong></td><td>{{order.order_date}}</td></tr>
+        <tr><td><strong>Дата отправки</strong></td><td>{{order.delivery_date}}</td></tr>
+        <tr><td><strong>Адрес</strong></td><td>{{order.adress}}</td></tr>
+        <tr><td><strong>ФИО Клиента</strong></td><td>{{order.user}}</td></tr>
+      </table>
+    {%endfor%}
+    {% else %}
+        <h1>403 Ошибка доступа</h1>
+        <p>У вас недостаточно прав для просмотра этой страницы.</p>
+    {%endif%}
+</body>
+</html>
