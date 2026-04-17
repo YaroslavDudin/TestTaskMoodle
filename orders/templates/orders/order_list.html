@@ -3,27 +3,71 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Список заказов</title>
+    <style>
+        table { border-collapse: collapse; width: 100%; margin-bottom: 20px; border: 1px solid #ddd; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        tr:nth-child(even) { background-color: #f2f2f2; }
+        .user-info { background-color: #f0f0f0; padding: 10px; margin-bottom: 20px; }
+    </style>
 </head>
 <body>
-    {%if is_admin or is_manager%}
-    <form action="{%url 'product_list'%}" method="get">
-        <button type="submit">Вернуться</button>
+    {% if user.is_authenticated %}
+    <div class="user-info">
+        <p>Вы вошли как: <strong>{{ user.username }}</strong> 
+        {% if user.is_superuser %}
+            (Администратор)
+        {% else %}
+            {% for group in user.groups.all %}
+                , роль: {{ group.name }}
+            {% endfor %}
+        {% endif %}
+        </p>
+        <form action="{% url 'logout' %}" method="post">
+            {% csrf_token %}
+            <button type="submit">Выйти из учётки</button>
+        </form>
+    </div>
+    {% endif %}
+
+    {% if is_admin or is_manager %}
+    <form action="{% url 'product_list' %}" method="get" style="margin-bottom: 20px;">
+        <button type="submit">Вернуться к товарам</button>
     </form>
     
-    {%for order in orders %}
+    {% if is_admin %}
+    <div style="margin-bottom: 20px;">
+        <a href="{% url 'order_create' %}"><button>Создать новый заказ</button></a>
+    </div>
+    {% endif %}
+
+    {% for order in orders %}
     <table>
-        <tr><td><strong>Номер</strong></td><td>{{order.count}}</td></tr>
-        <tr><td><strong>Артикул</strong></td><td>{{order.article.article}}</td></tr>
-        <tr><td><strong>Дата создания</strong></td><td>{{order.order_date}}</td></tr>
-        <tr><td><strong>Дата отправки</strong></td><td>{{order.delivery_date}}</td></tr>
-        <tr><td><strong>Адрес</strong></td><td>{{order.adress}}</td></tr>
-        <tr><td><strong>ФИО Клиента</strong></td><td>{{order.user}}</td></tr>
-      </table>
-    {%endfor%}
+        <tr><td style="width: 200px;"><strong>Номер</strong></td><td>{{ order.count }}</td></tr>
+        <tr><td><strong>Артикул товара</strong></td><td>{{ order.article.article }}</td></tr>
+        <tr><td><strong>Товар</strong></td><td>{{ order.article.name }}</td></tr>
+        <tr><td><strong>Дата создания</strong></td><td>{{ order.order_date }}</td></tr>
+        <tr><td><strong>Дата отправки</strong></td><td>{{ order.delivery_date }}</td></tr>
+        <tr><td><strong>Адрес</strong></td><td>{{ order.adress }}</td></tr>
+        <tr><td><strong>ФИО Клиента</strong></td><td>{{ order.user }}</td></tr>
+        {% if is_admin %}
+        <tr>
+            <td><strong>Действия</strong></td>
+            <td>
+                <a href="{% url 'order_update' order.pk %}">Редактировать</a> |
+                <a href="{% url 'order_delete' order.pk %}">Удалить</a>
+            </td>
+        </tr>
+        {% endif %}
+    </table>
+    <hr>
+    {% empty %}
+    <p>Заказов пока нет.</p>
+    {% endfor %}
+    
     {% else %}
         <h1>403 Ошибка доступа</h1>
         <p>У вас недостаточно прав для просмотра этой страницы.</p>
-    {%endif%}
+    {% endif %}
 </body>
 </html>

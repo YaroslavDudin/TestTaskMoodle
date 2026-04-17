@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+
+{% block title %}Удаление заказа{% endblock %}
+
+{% block content %}
+    <h1>Вы уверены, что хотите удалить заказ №{{ order.count }} от {{ order.order_date }}?</h1>
+    <p>Клиент: {{ order.user }}</p>
+    <form method="post">
+        {% csrf_token %}
+        <button type="submit" style="background-color: #ff4d4d; color: white; padding: 10px 20px; border: none; cursor: pointer;">Удалить заказ</button>
+    </form>
+    <br>
+    <a href="{% url 'order_list' %}">Отмена</a>
+{% endblock %}

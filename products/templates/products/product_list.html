@@ -3,67 +3,91 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Список товаров</title>
     <style>
-        div {
+        div.product-item {
             display: grid;
             grid-template-columns: auto;
+            border: 1px solid #eee;
+            padding: 10px;
+            margin-bottom: 10px;
         }
-        img{
+        img {
             height: 100px;
             width: 100px;
         }
-        hr{
+        hr {
             margin: 5px;
         }
-
+        .user-info {
+            background-color: #f0f0f0;
+            padding: 10px;
+            margin-bottom: 20px;
+        }
     </style>
 </head>
 <body>
-    {%if is_admin or is_manager%}
-    <form action="{%url 'order_list'%}" method="get">
+    {% if user.is_authenticated %}
+    <div class="user-info">
+        <p>Вы вошли как: <strong>{{ user.username }}</strong> 
+        {% if user.is_superuser %}
+            (Администратор)
+        {% else %}
+            {% for group in user.groups.all %}
+                , роль: {{ group.name }}
+            {% endfor %}
+        {% endif %}
+        </p>
+        <form action="{% url 'logout' %}" method="post">
+            {% csrf_token %}
+            <button type="submit">Выйти из учётки</button>
+        </form>
+    </div>
+    {% endif %}
+
+    {% if is_admin or is_manager %}
+    <form action="{% url 'order_list' %}" method="get" style="margin-bottom: 10px;">
         <button>Посмотреть заказы</button>
     </form>
-    {%endif%}
+    {% endif %}
 
-    {%if is_manager or is_admin%}
-    <form  method="get">
-        <div>
-            {{form.query.label}}
-        </div>
-        {{form.query}}
-        <div>
-            {{form.sort.label}}
-        </div>
-        {{form.sort}}
-        <button type="submit">Применить</button>
-    </form>
-    {%endif%}
-    <form action="{% url 'logout' %}" method="post">
-        {% csrf_token %}
-        <button type="submit"> Выйти из учётки</button>
-    </form>
-    {% if user.is_authenticated %}
-    {% for group in user.groups.all %}
-    <p>Вы водшли как : {{user.username}} , ваша роль {{group.name}}</p>
-    {%endfor%}
-    {%endif%}
+    {% if is_admin %}
+    <a href="{% url 'product_create' %}"><button style="margin-bottom: 20px;">Добавить товар</button></a>
+    {% endif %}
 
-    
-    {%for product in products%}
-    <div>
-        <span>{{product.name}}</span>
-        <span>{{product.article}}</span>
-        <span>{{product.supplier}}</span>
-        <span>{{product.manufacturer}}</span>
-        <span>{{product.category}}</span>
-        <span>{{product.price}}</span>
-        <span>{{product.discount}}</span>
-        <span>{{product.final_price}}</span>
-        <span>{{product.description}}</span>
-        <img src="{{product.image.url}}" alt="{{product.name}}">
+    {% if is_manager or is_admin %}
+    <form method="get" style="background: #f9f9f9; padding: 15px; border-radius: 5px; margin-bottom: 20px;">
+        <div>
+            {{ form.query.label }}: {{ form.query }}
+        </div>
+        <div style="margin-top: 10px;">
+            {{ form.sort.label }}: {{ form.sort }}
+        </div>
+        <button type="submit" style="margin-top: 10px;">Применить</button>
+    </form>
+    {% endif %}
+
+    {% for product in products %}
+    <div class="product-item">
+        <span><strong>Имя:</strong> {{ product.name }}</span>
+        <span><strong>Артикул:</strong> {{ product.article }}</span>
+        <span><strong>Цена:</strong> {{ product.price }}</span>
+        <span><strong>Скидка:</strong> {{ product.discount }}%</span>
+        <span><strong>Финальная цена:</strong> {{ product.final_price }}</span>
+        {% if product.image %}
+        <img src="{{ product.image.url }}" alt="{{ product.name }}">
+        {% else %}
+        <span>(Нет изображения)</span>
+        {% endif %}
+        
+        {% if is_admin %}
+        <div style="margin-top: 10px;">
+            <a href="{% url 'product_update' product.pk %}">Редактировать</a> |
+            <a href="{% url 'product_delete' product.pk %}">Удалить</a>
+        </div>
+        {% endif %}
         <hr>
     </div>
-    {%endfor%}
+    {% endfor %}
 </body>
 </html>
