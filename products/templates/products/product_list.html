@@ -1,50 +1,25 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Список товаров</title>
-    <style>
-        div.product-item {
-            display: grid;
-            grid-template-columns: auto;
-            border: 1px solid #eee;
-            padding: 10px;
-            margin-bottom: 10px;
-        }
-        img {
-            height: 100px;
-            width: 100px;
-        }
-        hr {
-            margin: 5px;
-        }
-        .user-info {
-            background-color: #f0f0f0;
-            padding: 10px;
-            margin-bottom: 20px;
-        }
-    </style>
-</head>
-<body>
-    {% if user.is_authenticated %}
-    <div class="user-info">
-        <p>Вы вошли как: <strong>{{ user.username }}</strong> 
-        {% if user.is_superuser %}
-            (Администратор)
-        {% else %}
-            {% for group in user.groups.all %}
-                , роль: {{ group.name }}
-            {% endfor %}
-        {% endif %}
-        </p>
-        <form action="{% url 'logout' %}" method="post">
-            {% csrf_token %}
-            <button type="submit">Выйти из учётки</button>
-        </form>
-    </div>
-    {% endif %}
+{% extends 'base.html' %}
 
+{% block title %}Список товаров{% endblock %}
+
+{% block extra_style %}
+    div.product-item {
+        display: grid;
+        grid-template-columns: auto;
+        border: 1px solid #eee;
+        padding: 10px;
+        margin-bottom: 10px;
+    }
+    img {
+        height: 100px;
+        width: 100px;
+    }
+    hr {
+        margin: 5px;
+    }
+{% endblock %}
+
+{% block content %}
     {% if is_admin or is_manager %}
     <form action="{% url 'order_list' %}" method="get" style="margin-bottom: 10px;">
         <button>Посмотреть заказы</button>
@@ -89,5 +64,4 @@
         <hr>
     </div>
     {% endfor %}
-</body>
-</html>
+{% endblock %}

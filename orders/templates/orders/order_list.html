@@ -1,35 +1,14 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Список заказов</title>
-    <style>
-        table { border-collapse: collapse; width: 100%; margin-bottom: 20px; border: 1px solid #ddd; }
-        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-        tr:nth-child(even) { background-color: #f2f2f2; }
-        .user-info { background-color: #f0f0f0; padding: 10px; margin-bottom: 20px; }
-    </style>
-</head>
-<body>
-    {% if user.is_authenticated %}
-    <div class="user-info">
-        <p>Вы вошли как: <strong>{{ user.username }}</strong> 
-        {% if user.is_superuser %}
-            (Администратор)
-        {% else %}
-            {% for group in user.groups.all %}
-                , роль: {{ group.name }}
-            {% endfor %}
-        {% endif %}
-        </p>
-        <form action="{% url 'logout' %}" method="post">
-            {% csrf_token %}
-            <button type="submit">Выйти из учётки</button>
-        </form>
-    </div>
-    {% endif %}
+{% extends 'base.html' %}
 
+{% block title %}Список заказов{% endblock %}
+
+{% block extra_style %}
+    table { border-collapse: collapse; width: 100%; margin-bottom: 20px; border: 1px solid #ddd; }
+    th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+    tr:nth-child(even) { background-color: #f2f2f2; }
+{% endblock %}
+
+{% block content %}
     {% if is_admin or is_manager %}
     <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 20px;">
         <form action="{% url 'product_list' %}" method="get">
@@ -41,7 +20,22 @@
         {% endif %}
     </div>
 
-  
+    <!-- Форма поиска и сортировки -->
+    <form method="get" style="background: #f9f9f9; padding: 15px; border-radius: 5px; margin-bottom: 20px;">
+        <div>
+            Поиск (ФИО клиента): <input type="text" name="q" value="{{ query|default:'' }}" placeholder="Поиск...">
+        </div>
+        <div style="margin-top: 10px;">
+            Сортировка по цене товара: 
+            <select name="sort">
+                <option value="">Без сортировки</option>
+                <option value="price_asc" {% if sort == 'price_asc' %}selected{% endif %}>Сначала дешевле</option>
+                <option value="price_desc" {% if sort == 'price_desc' %}selected{% endif %}>Сначала дороже</option>
+            </select>
+        </div>
+        <button type="submit" style="margin-top: 10px;">Применить</button>
+    </form>
+    
     {% for order in orders %}
     <table>
         <tr><td style="width: 200px;"><strong>Номер</strong></td><td>{{ order.count }}</td></tr>
@@ -70,5 +64,4 @@
         <h1>403 Ошибка доступа</h1>
         <p>У вас недостаточно прав для просмотра этой страницы.</p>
     {% endif %}
-</body>
-</html>
+{% endblock %}
