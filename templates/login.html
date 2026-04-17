@@ -1,14 +1,17 @@
-{% extends 'base.html' %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Вход</title>
+    <style>
+        p.error {
+            color: red;
+        }
+    </style>
+</head>
+<body>
 
-{% block title %}Вход{% endblock %}
-
-{% block extra_style %}
-    p.error {
-        color: red;
-    }
-{% endblock %}
-
-{% block content %}
     <h2>Вход в систему</h2>
     <form method="post">
         {% csrf_token %}
@@ -31,4 +34,5 @@
             <button type="submit">Войти как гость</button>
         </form>
     </div>
-{% endblock %}
+</body>
+</html>

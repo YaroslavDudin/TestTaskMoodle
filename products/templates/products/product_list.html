@@ -1,25 +1,53 @@
-{% extends 'base.html' %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Список товаров</title>
+    <style>
+        .user-info {
+            background-color: #f0f0f0;
+            padding: 10px;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #ccc;
+        }
+        div.product-item {
+            display: grid;
+            grid-template-columns: auto;
+            border: 1px solid #eee;
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+        img {
+            height: 100px;
+            width: 100px;
+        }
+        hr {
+            margin: 5px;
+        }
+    </style>
+</head>
+<body>
+    {% if user.is_authenticated %}
+    <div class="user-info">
+        <span>Вы вошли как: <strong>{{ user.username }}</strong></span>
+        {% if user.is_superuser %}
+            <span>(Администратор системы)</span>
+        {% else %}
+            {% for group in user.groups.all %}
+                <span>, Ваша роль: {{ group.name }}</span>
+            {% empty %}
+                <span>, Роль не назначена</span>
+            {% endfor %}
+        {% endif %}
+        
+        <form action="{% url 'logout' %}" method="post" style="display: inline; margin-left: 20px;">
+            {% csrf_token %}
+            <button type="submit">Выйти из учётки</button>
+        </form>
+    </div>
+    {% endif %}
 
-{% block title %}Список товаров{% endblock %}
-
-{% block extra_style %}
-    div.product-item {
-        display: grid;
-        grid-template-columns: auto;
-        border: 1px solid #eee;
-        padding: 10px;
-        margin-bottom: 10px;
-    }
-    img {
-        height: 100px;
-        width: 100px;
-    }
-    hr {
-        margin: 5px;
-    }
-{% endblock %}
-
-{% block content %}
     {% if is_admin or is_manager %}
     <form action="{% url 'order_list' %}" method="get" style="margin-bottom: 10px;">
         <button>Посмотреть заказы</button>
@@ -64,4 +92,5 @@
         <hr>
     </div>
     {% endfor %}
-{% endblock %}
+</body>
+</html>

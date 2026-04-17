@@ -1,14 +1,42 @@
-{% extends 'base.html' %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Список заказов</title>
+    <style>
+        .user-info {
+            background-color: #f0f0f0;
+            padding: 10px;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #ccc;
+        }
+        table { border-collapse: collapse; width: 100%; margin-bottom: 20px; border: 1px solid #ddd; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        tr:nth-child(even) { background-color: #f2f2f2; }
+    </style>
+</head>
+<body>
+    {% if user.is_authenticated %}
+    <div class="user-info">
+        <span>Вы вошли как: <strong>{{ user.username }}</strong></span>
+        {% if user.is_superuser %}
+            <span>(Администратор системы)</span>
+        {% else %}
+            {% for group in user.groups.all %}
+                <span>, Ваша роль: {{ group.name }}</span>
+            {% empty %}
+                <span>, Роль не назначена</span>
+            {% endfor %}
+        {% endif %}
+        
+        <form action="{% url 'logout' %}" method="post" style="display: inline; margin-left: 20px;">
+            {% csrf_token %}
+            <button type="submit">Выйти из учётки</button>
+        </form>
+    </div>
+    {% endif %}
 
-{% block title %}Список заказов{% endblock %}
-
-{% block extra_style %}
-    table { border-collapse: collapse; width: 100%; margin-bottom: 20px; border: 1px solid #ddd; }
-    th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-    tr:nth-child(even) { background-color: #f2f2f2; }
-{% endblock %}
-
-{% block content %}
     {% if is_admin or is_manager %}
     <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 20px;">
         <form action="{% url 'product_list' %}" method="get">
@@ -64,4 +92,5 @@
         <h1>403 Ошибка доступа</h1>
         <p>У вас недостаточно прав для просмотра этой страницы.</p>
     {% endif %}
-{% endblock %}
+</body>
+</html>
