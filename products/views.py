@@ -1,81 +1,73 @@
-from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth.decorators import login_required, user_passes_test
+from django.urls import reverse_lazy
+from django.views.generic import ListView, CreateView, UpdateView, DeleteView
+from django.http import HttpResponseForbidden
 from .models import Product
-from .forms import ProductFilter, ProductForm
+from .forms import ProductForm, ProductFilter
+from utils import user_is_admin, user_is_manager, user_is_client, user_is_guest
 
-def is_admin(user):
-    return user.is_authenticated and (user.is_superuser or user.groups.filter(name__iexact='admin').exists())
+class ProductListView(ListView):
+    model = Product
+    template_name = 'products/product_list.html'
+    context_object_name = 'products'
 
-def is_manager_or_admin(user):
-    return user.is_authenticated and (
-        user.is_superuser or 
-        user.groups.filter(name__iexact='admin').exists() or 
-        user.groups.filter(name__iexact='manager').exists()
-    )
-
-def product_list(request):
-    products = Product.objects.all()
-    user = request.user
-    
-    # Определяем статусы для шаблона
-    admin_status = is_admin(user)
-    manager_status = user.is_authenticated and user.groups.filter(name__iexact='manager').exists()
-    
-    is_admin_val = admin_status
-    is_manager_val = manager_status
-    is_client = user.is_authenticated and user.groups.filter(name__iexact='client').exists()
-    is_guest = not user.is_authenticated
-
-    form = ProductFilter(request.GET)  
-    if form.is_valid():
-        query = form.cleaned_data.get('query')
-        if query:
-            products = products.filter(name__icontains=query)
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        user = self.request.user
         
-        sort = form.cleaned_data.get('sort')
-        if sort:
-            try:
-                products = products.order_by(sort)
-            except:
-                pass
+        is_admin = user_is_admin(user)
+        is_manager = user_is_manager(user)
+        can_filter = is_admin or is_manager
+        
+        self.filter_form = ProductFilter(self.request.GET)
+        
+        if can_filter and self.filter_form.is_valid():
+            query = self.filter_form.cleaned_data.get('query')
+            sort = self.filter_form.cleaned_data.get('sort')
 
-    return render(request, 'products/product_list.html', {
-        'user': user,
-        'is_admin': is_admin_val,
-        'is_manager': is_manager_val,
-        'is_client': is_client,
-        'is_guest': is_guest,
-        'products': products,
-        'form': form
-    })
+            if query:
+                queryset = queryset.filter(name__icontains=query)
 
-@user_passes_test(is_admin, login_url='login')
-def product_create(request):
-    if request.method == 'POST':
-        form = ProductForm(request.POST, request.FILES)
-        if form.is_valid():
-            form.save()
-            return redirect('product_list')
-    else:
-        form = ProductForm()
-    return render(request, 'products/product_form.html', {'form': form, 'title': 'Добавить товар'})
+            if sort:
+                if sort == 'final_price':
+                    queryset = queryset.order_by('price') 
+                elif sort == '-final_price':
+                    queryset = queryset.order_by('-price')
+        
+        return queryset
 
-@user_passes_test(is_admin, login_url='login')
-def product_update(request, pk):
-    product = get_object_or_404(Product, pk=pk)
-    if request.method == 'POST':
-        form = ProductForm(request.POST, request.FILES, instance=product)
-        if form.is_valid():
-            form.save()
-            return redirect('product_list')
-    else:
-        form = ProductForm(instance=product)
-    return render(request, 'products/product_form.html', {'form': form, 'title': 'Редактировать товар'})
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        user = self.request.user
+        
+        is_admin = user_is_admin(user)
+        is_manager = user_is_manager(user)
+        is_client = user_is_client(user)
+        is_guest = user_is_guest(user)
+        can_filter = is_admin or is_manager
+        
+        context.update({
+            'is_admin': is_admin,
+            'is_manager': is_manager,
+            'is_client': is_client,
+            'is_guest': is_guest,
+            'can_filter': can_filter,
+            'form': getattr(self, 'filter_form', ProductFilter(self.request.GET)),
+        })
+        return context
 
-@user_passes_test(is_admin, login_url='login')
-def product_delete(request, pk):
-    product = get_object_or_404(Product, pk=pk)
-    if request.method == 'POST':
-        product.delete()
-        return redirect('product_list')
-    return render(request, 'products/product_confirm_delete.html', {'product': product})
+class ProductCreateView(CreateView):
+    model = Product
+    form_class = ProductForm
+    template_name = 'products/product_form.html'
+    success_url = reverse_lazy('product_list')
+
+class ProductUpdateView(UpdateView):
+    model = Product
+    form_class = ProductForm
+    template_name = 'products/product_form.html'
+    success_url = reverse_lazy('product_list')
+
+class ProductDeleteView(DeleteView):
+    model = Product
+    template_name = 'products/product_confirm_delete.html'
+    success_url = reverse_lazy('product_list')

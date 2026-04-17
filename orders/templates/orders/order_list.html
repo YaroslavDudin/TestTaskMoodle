@@ -31,16 +31,17 @@
     {% endif %}
 
     {% if is_admin or is_manager %}
-    <form action="{% url 'product_list' %}" method="get" style="margin-bottom: 20px;">
-        <button type="submit">Вернуться к товарам</button>
-    </form>
-    
-    {% if is_admin %}
-    <div style="margin-bottom: 20px;">
+    <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 20px;">
+        <form action="{% url 'product_list' %}" method="get">
+            <button type="submit">Вернуться к товарам</button>
+        </form>
+        
+        {% if is_admin %}
         <a href="{% url 'order_create' %}"><button>Создать новый заказ</button></a>
+        {% endif %}
     </div>
-    {% endif %}
 
+  
     {% for order in orders %}
     <table>
         <tr><td style="width: 200px;"><strong>Номер</strong></td><td>{{ order.count }}</td></tr>
